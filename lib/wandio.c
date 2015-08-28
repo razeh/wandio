@@ -129,7 +129,7 @@ static void parse_env(void)
 #define DEBUG_PIPELINE(x) 
 #endif
 
-static io_t *create_io_reader(const char *filename, int autodetect)
+io_t *create_io_reader(const char *filename, int autodetect)
 {
         io_t *io;
 	/* Use a peeking reader to look at the start of the trace file and
@@ -215,17 +215,9 @@ static io_t *create_io_reader(const char *filename, int autodetect)
                         return NULL;
 #endif
                 }
-	}	
-	/* Now open a threaded, peekable reader using the appropriate module
-	 * to read the data */
-
-	if (use_threads) {
-		DEBUG_PIPELINE("thread");
-		io = thread_open(io);
 	}
-	
-	DEBUG_PIPELINE("peek");
-	return peek_open(io);
+
+        return io;
 }
 
 DLLEXPORT struct wandio_compression_type *wandio_lookup_compression_type(
@@ -244,11 +236,27 @@ DLLEXPORT struct wandio_compression_type *wandio_lookup_compression_type(
 
 DLLEXPORT io_t *wandio_create(const char *filename) {
 	parse_env();
-	return create_io_reader(filename, use_autodetect);
+
+        /* Open a threaded, peekable reader using the appropriate
+	 * module to read the data */
+	if (use_threads) {
+		DEBUG_PIPELINE("thread");
+		return peek_open(thread_open(filename, use_autodetect));
+	}
+
+        return create_io_reader(filename, use_autodetect);
 }
 
 DLLEXPORT io_t *wandio_create_uncompressed(const char *filename) {
 	parse_env();
+
+        /* Open a threaded, peekable reader using the appropriate
+	 * module to read the data */
+	if (use_threads) {
+		DEBUG_PIPELINE("thread");
+		return peek_open(thread_open(filename, 0));
+	}
+
 	return create_io_reader(filename, 0);
 }
 

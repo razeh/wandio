@@ -82,6 +82,10 @@ struct state_t {
 	pthread_cond_t data_ready;
 	/* The mutex for the read buffers */
 	pthread_mutex_t mutex;
+        /* The file that we will open */
+        char *filename;
+        /* autodetect the file format? */
+        int autodetect;
 	/* The parent reader */
 	io_t *io;
 	/* Indicates whether the main thread is concluding */
@@ -113,6 +117,14 @@ static void *thread_producer(void* userdata)
 		prctl(PR_SET_NAME, namebuf, 0,0,0);
 	}
 #endif
+
+        /* create the child reader. we do this in the thread in case the open
+           blocks (as is the case for HTTP files) */
+        DATA(state)->io = create_io_reader(DATA(state)->filename,
+                                           DATA(state)->autodetect);
+        if (!DATA(state)->io) {
+                return NULL;
+        }
 
 	pthread_mutex_lock(&DATA(state)->mutex);
 	do {
@@ -161,13 +173,13 @@ static void *thread_producer(void* userdata)
 	return NULL;
 }
 
-io_t *thread_open(io_t *parent)
+io_t *thread_open(const char *filename, int autodetect)
 {
 	io_t *state;
 	sigset_t set;
 	int s;
 
-	if (!parent) {
+	if (!filename) {
 		return NULL;
 	}
 	
@@ -184,7 +196,10 @@ io_t *thread_open(io_t *parent)
 	pthread_cond_init(&DATA(state)->data_ready,NULL);
 	pthread_cond_init(&DATA(state)->space_avail,NULL);
 
-	DATA(state)->io = parent;
+        DATA(state)->filename = strdup(filename);
+        DATA(state)->autodetect = autodetect;
+
+	DATA(state)->io = NULL;
 	DATA(state)->closing = false;
 
 	/* Create the reading thread */
@@ -273,7 +288,8 @@ static void thread_close(io_t *io)
 	pthread_mutex_destroy(&DATA(io)->mutex);
 	pthread_cond_destroy(&DATA(io)->space_avail);
 	pthread_cond_destroy(&DATA(io)->data_ready);
-	
+
+        free(DATA(io)->filename);
 	free(DATA(io)->buffer);
 	free(DATA(io));
 	free(io);

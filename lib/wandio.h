@@ -190,11 +190,13 @@ enum {
 
 io_t *bz_open(io_t *parent);
 io_t *zlib_open(io_t *parent);
-io_t *thread_open(io_t *parent);
 io_t *lzma_open(io_t *parent);
 io_t *peek_open(io_t *parent);
+io_t *thread_open(const char *filename, int autodetect);
 io_t *stdio_open(const char *filename);
 io_t *http_open(const char *filename);
+
+io_t *create_io_reader(const char *filename, int autodetect);
 
 iow_t *zlib_wopen(iow_t *child, int compress_level);
 iow_t *bz_wopen(iow_t *child, int compress_level);
