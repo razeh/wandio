@@ -76,6 +76,10 @@ int main(int argc, char *argv[])
                                 wandio_wwrite(iow, buffer, len);
                 } while(len > 0);
 
+                if (len < 0) {
+                        fprintf(stderr, "Failed to read from %s\n", argv[i]);
+                }
+
                 wandio_destroy(ior);
         }
         wandio_wdestroy(iow);

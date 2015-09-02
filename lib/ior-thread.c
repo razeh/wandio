@@ -123,6 +123,12 @@ static void *thread_producer(void* userdata)
         DATA(state)->io = create_io_reader(DATA(state)->filename,
                                            DATA(state)->autodetect);
         if (!DATA(state)->io) {
+                /* signal to the parent thread that there is an error */
+                pthread_mutex_lock(&DATA(state)->mutex);
+                DATA(state)->buffer[buffer].state = FULL;
+                DATA(state)->buffer[buffer].len = -1;
+                pthread_cond_signal(&DATA(state)->data_ready);
+                pthread_mutex_unlock(&DATA(state)->mutex);
                 return NULL;
         }
 
