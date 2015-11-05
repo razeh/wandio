@@ -161,6 +161,17 @@ static int fill_buffer(io_t *io)
                 curl_easy_pause(DATA(io)->curl, CURLPAUSE_CONT);
                 /* FIXME: check return code */
                 rc = curl_multi_perform(DATA(io)->multi, &n_running);
+
+                /* DEBUG */
+                CURLMsg *msg = NULL;
+                do {
+                  msg = curl_multi_info_read(DATA(io)->multi, &rc);
+                  if (msg != NULL) {
+                    fprintf(stderr, "DEBUG: Message: %d%s\n", msg->msg,
+                            msg->msg == CURLMSG_DONE ? " (DONE)" : "");
+                  }
+                } while (msg != NULL);
+
         } while (n_running &&
                  DATA(io)->l_buf < DATA(io)->m_buf - CURL_MAX_WRITE_SIZE);
 
