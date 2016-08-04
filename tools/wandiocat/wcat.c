@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
         int compress_level = 0;
         int compress_type = WANDIO_COMPRESS_NONE;
         char *output = "-";
-        char c;
+        int c;
         while ((c = getopt (argc, argv, "Z:z:o:h")) != -1) {
                 switch (c)
                 {
