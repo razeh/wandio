@@ -11,11 +11,11 @@ static void printhelp() {
         printf("Available options:\n\n");
         printf(" -z <level>\n");
         printf("    Sets a compression level for the output file, must be \n");
-        printf("    between 0 (uncompressed) and 9 (max compression)\n"); 
+        printf("    between 0 (uncompressed) and 9 (max compression)\n");
         printf("    Default is 0.\n");
         printf(" -Z <method>\n");
         printf("    Set the compression method. Must be one of 'gzip', \n");
-        printf("    'bzip2', 'lzo' or 'lzma'. If not specified, no\n");
+        printf("    'bzip2', 'lzo', 'lzma', or 'zstd'. If not specified, no\n");
         printf("    compression is performed.\n");
         printf(" -o <file>\n");
         printf("    The name of the output file. If not specified, output\n");

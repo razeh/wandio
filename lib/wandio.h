@@ -1,15 +1,15 @@
 /*
  * This file is part of libwandio
  *
- * Copyright (c) 2007-2015 The University of Waikato, Hamilton, 
+ * Copyright (c) 2007-2015 The University of Waikato, Hamilton,
  * New Zealand.
  *
  * Authors: Perry Lorier
- *          Shane Alcock 
- *          
+ *          Shane Alcock
+ *
  * All rights reserved.
  *
- * This code has been developed by the University of Waikato WAND 
+ * This code has been developed by the University of Waikato WAND
  * research group. For further information please see http://www.wand.net.nz/
  *
  * libwandio is free software; you can redistribute it and/or modify
@@ -28,7 +28,7 @@
  *
  */
 
-#ifndef IO_H 
+#ifndef IO_H
 #define IO_H 1 /**< Guard Define */
 #include <sys/types.h>
 #include <stdio.h>
@@ -63,13 +63,13 @@ typedef struct iow_t iow_t; /**< Opaque IO handle structure for writing */
 
 /** Structure defining a supported compression method */
 struct wandio_compression_type {
-	/** Name of the compression method */
-	const char *name;
-	/** Extension to add to the filename of files written using this 
-	 *  method */
-	const char *ext;
-	/** Internal type identifying the compression method */
-	int compress_type;
+        /** Name of the compression method */
+        const char *name;
+        /** Extension to add to the filename of files written using this
+         *  method */
+        const char *ext;
+        /** Internal type identifying the compression method */
+        int compress_type;
 };
 
 /** The list of supported compression methods */
@@ -77,112 +77,114 @@ extern struct wandio_compression_type compression_type[];
 
 /** Structure defining a libwandio IO reader module */
 typedef struct {
-	/** Module name */
-	const char *name;
+        /** Module name */
+        const char *name;
 
-	/** Reads from the IO source into the provided buffer.
-	 *
-	 * @param io		The IO reader
-	 * @param buffer	The buffer to read into
-	 * @param len		The amount of space available in the buffer
-	 * @return The amount of bytes read, 0 if end of file is reached, -1
-	 * if an error occurs
-	 */
-	int64_t (*read)(io_t *io, void *buffer, int64_t len);
+        /** Reads from the IO source into the provided buffer.
+         *
+         * @param io		The IO reader
+         * @param buffer	The buffer to read into
+         * @param len		The amount of space available in the buffer
+         * @return The amount of bytes read, 0 if end of file is reached, -1
+         * if an error occurs
+         */
+        int64_t (*read)(io_t *io, void *buffer, int64_t len);
 
-	/** Reads from the IO source into the provided buffer but does not
-	 *  advance the read pointer.
-	 *
-	 * @param io		The IO reader
-	 * @param buffer	The buffer to read into
-	 * @param len		The amount of space available in the buffer
-	 * @return The amount of bytes read, 0 if end of file is reached, -1
-	 * if an error occurs
-	 */
-	int64_t (*peek)(io_t *io, void *buffer, int64_t len);
+        /** Reads from the IO source into the provided buffer but does not
+         *  advance the read pointer.
+         *
+         * @param io		The IO reader
+         * @param buffer	The buffer to read into
+         * @param len		The amount of space available in the buffer
+         * @return The amount of bytes read, 0 if end of file is reached, -1
+         * if an error occurs
+         */
+        int64_t (*peek)(io_t *io, void *buffer, int64_t len);
 
-	/** Returns the current offset of the read pointer for an IO source.
-	 *
-	 * @param io		The IO reader to get the read offset for
-	 * @return The offset of the read pointer, or -1 if an error occurs
-	 */
-	int64_t (*tell)(io_t *io);
-	
-	/** Moves the read pointer for an IO source.
-	 * 
-	 * @param io		The IO reader to move the read pointer for
-	 * @param offset	The new read pointer offset
-	 * @param whence	Where to start counting the new offset from.
-	 * 			whence can be one of three values: SEEK_SET,
-	 * 			SEEK_CUR and SEEK_END. See the lseek(2) manpage
-	 * 			for more details as to what these mean.
-	 * @return The value of the new read pointer, or -1 if an error occurs
-	 */
-	int64_t (*seek)(io_t *io, int64_t offset, int whence);
-	
-	/** Closes an IO reader. This function should free the IO reader.
-	 *
-	 * @param io		The IO reader to close
-	 */
-	void (*close)(io_t *io);
+        /** Returns the current offset of the read pointer for an IO source.
+         *
+         * @param io		The IO reader to get the read offset for
+         * @return The offset of the read pointer, or -1 if an error occurs
+         */
+        int64_t (*tell)(io_t *io);
+
+        /** Moves the read pointer for an IO source.
+         *
+         * @param io		The IO reader to move the read pointer for
+         * @param offset	The new read pointer offset
+         * @param whence	Where to start counting the new offset from.
+         *                      whence can be one of three values: SEEK_SET,
+         *                      SEEK_CUR and SEEK_END. See the lseek(2) manpage
+         *                      for more details as to what these mean.
+         * @return The value of the new read pointer, or -1 if an error occurs
+         */
+        int64_t (*seek)(io_t *io, int64_t offset, int whence);
+
+        /** Closes an IO reader. This function should free the IO reader.
+         *
+         * @param io		The IO reader to close
+         */
+        void (*close)(io_t *io);
 } io_source_t;
 
 /** Structure defining a libwandio IO writer module */
 typedef struct {
-	/** The name of the module */
-	const char *name;
-	
-	/** Writes the contents of a buffer using an IO writer.
-	 *
-	 * @param iow		The IO writer to write the data with
-	 * @param buffer	The buffer to be written
-	 * @param len		The amount of writable data in the buffer
-	 * @return The amount of data written, or -1 if an error occurs
-	 */
-	int64_t (*write)(iow_t *iow, const char *buffer, int64_t len);
+        /** The name of the module */
+        const char *name;
 
-	/** Closes an IO writer. This function should free the IO writer. 
-	 *
-	 * @param iow		The IO writer to close
-	 */
-	void (*close)(iow_t *iow);
+        /** Writes the contents of a buffer using an IO writer.
+         *
+         * @param iow		The IO writer to write the data with
+         * @param buffer	The buffer to be written
+         * @param len		The amount of writable data in the buffer
+         * @return The amount of data written, or -1 if an error occurs
+         */
+        int64_t (*write)(iow_t *iow, const char *buffer, int64_t len);
+
+        /** Closes an IO writer. This function should free the IO writer.
+         *
+         * @param iow		The IO writer to close
+         */
+        void (*close)(iow_t *iow);
 } iow_source_t;
 
 /** A libwandio IO reader */
 struct io_t {
-	/** The IO module that is used by the reader */
-	io_source_t *source;
-	/** Generic pointer to data required by the IO module */
-	void *data;
+        /** The IO module that is used by the reader */
+        io_source_t *source;
+        /** Generic pointer to data required by the IO module */
+        void *data;
 };
 
 /** A libwandio IO writer */
 struct iow_t {
-	/** The IO module that is used by the writer */
-	iow_source_t *source;
-	/** Generic pointer to data required by the IO module */
-	void *data;
+        /** The IO module that is used by the writer */
+        iow_source_t *source;
+        /** Generic pointer to data required by the IO module */
+        void *data;
 };
 
 /** Enumeration of all supported compression methods */
 enum {
-	/** No compression */
-	WANDIO_COMPRESS_NONE	= 0,
-	/** Zlib compression */
-	WANDIO_COMPRESS_ZLIB	= 1,
-	/** Bzip compression */
-	WANDIO_COMPRESS_BZ2	= 2,
-	/** LZO compression */
-	WANDIO_COMPRESS_LZO	= 3,
+        /** No compression */
+        WANDIO_COMPRESS_NONE	= 0,
+        /** Zlib compression */
+        WANDIO_COMPRESS_ZLIB	= 1,
+        /** Bzip compression */
+        WANDIO_COMPRESS_BZ2	= 2,
+        /** LZO compression */
+        WANDIO_COMPRESS_LZO	= 3,
         /** LZMA compression */
         WANDIO_COMPRESS_LZMA    = 4,
-	/** All supported methods - used as a bitmask */
-	WANDIO_COMPRESS_MASK	= 7
+        /** Zstandard compression */
+        WANDIO_COMPRESS_ZSTD    = 5,
+        /** All supported methods - used as a bitmask */
+        WANDIO_COMPRESS_MASK	= 7
 };
 
 /** @name IO open functions
  *
- * These functions deal with creating and initialising a new IO reader or 
+ * These functions deal with creating and initialising a new IO reader or
  * writer.
  *
  * @{
@@ -192,6 +194,7 @@ io_t *bz_open(io_t *parent);
 io_t *zlib_open(io_t *parent);
 io_t *thread_open(io_t *parent);
 io_t *lzma_open(io_t *parent);
+io_t *zstd_open(io_t *parent);
 io_t *peek_open(io_t *parent);
 io_t *stdio_open(const char *filename);
 io_t *http_open(const char *filename);
@@ -200,6 +203,7 @@ iow_t *zlib_wopen(iow_t *child, int compress_level);
 iow_t *bz_wopen(iow_t *child, int compress_level);
 iow_t *lzo_wopen(iow_t *child, int compress_level);
 iow_t *lzma_wopen(iow_t *child, int compress_level);
+iow_t *zstd_wopen(iow_t *child, int compress_level);
 iow_t *thread_wopen(iow_t *child);
 iow_t *stdio_wopen(const char *filename, int fileflags);
 
@@ -231,8 +235,8 @@ struct wandio_compression_type *wandio_lookup_compression_type(const char *name)
  * @param filename	The name of the file to open
  * @return A pointer to a new libwandio IO reader, or NULL if an error occurs
  *
- * The compression format will be determined automatically by peeking at the 
- * first few bytes of the file and comparing them against known compression 
+ * The compression format will be determined automatically by peeking at the
+ * first few bytes of the file and comparing them against known compression
  * file header formats. If no formats match, the file will be assumed to be
  * uncompressed.
  */
@@ -243,7 +247,7 @@ io_t *wandio_create(const char *filename);
  * @param filename	The name of the file to open
  * @return A pointer to a new libwandio IO reader, or NULL if an error occurs
  *
- * Unlike wandio_create, this function will always assume the file is 
+ * Unlike wandio_create, this function will always assume the file is
  * uncompressed and therefore not run the compression autodetection algorithm.
  *
  * Use this function if you are only working with uncompressed files and are
@@ -252,7 +256,7 @@ io_t *wandio_create(const char *filename);
  */
 io_t *wandio_create_uncompressed(const char *filename);
 
-/** Returns the current offset of the read pointer for a libwandio IO reader. 
+/** Returns the current offset of the read pointer for a libwandio IO reader.
  *
  * @param io		The IO reader to get the read offset for
  * @return The offset of the read pointer, or -1 if an error occurs
@@ -264,8 +268,8 @@ int64_t wandio_tell(io_t *io);
  *
  * @param io		The IO reader to adjust the read pointer for
  * @param offset	The new offset for the read pointer
- * @param whence	Indicates where to set the read pointer from. Can be 
- * 			one of SEEK_SET, SEEK_CUR or SEEK_END.
+ * @param whence	Indicates where to set the read pointer from. Can be
+ *                      one of SEEK_SET, SEEK_CUR or SEEK_END.
  * @return The new value for the read pointer, or -1 if an error occurs
  *
  * The arguments for this function are the same as those for lseek(2). See the
@@ -286,7 +290,7 @@ int64_t wandio_read(io_t *io, void *buffer, int64_t len);
  * update the read pointer.
  *
  * @param io		The IO reader to read from
- * @param buffer 	The buffer to read into
+ * @param buffer        The buffer to read into
  * @param len		The size of the buffer
  * @return The amount of bytes read, 0 if EOF is reached, -1 if an error occurs
  */
@@ -305,7 +309,7 @@ void wandio_destroy(io_t *io);
  * @param compression_type	Compression type
  * @param compression_level	The compression level to use when writing
  * @param flags			Flags to apply when opening the file, e.g.
- * 				O_CREATE
+ *                              O_CREATE
  * @return A pointer to the new libwandio IO writer, or NULL if an error occurs
  */
 iow_t *wandio_wcreate(const char *filename, int compression_type, int compression_level, int flags);

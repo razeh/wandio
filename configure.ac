@@ -13,7 +13,7 @@ WANDIO_MINOR=3
 # searched by default - add it to LDFLAGS so we at least have a chance of
 # finding it
 if test -d "/usr/gnu/lib"; then
-	LDFLAGS+=" -L/usr/gnu/lib"
+        LDFLAGS+=" -L/usr/gnu/lib"
 fi
 
 AC_CONFIG_MACRO_DIR([m4])
@@ -41,12 +41,12 @@ AC_CONFIG_FILES([Makefile lib/Makefile tools/wandiocat/Makefile])
 AC_DEFUN([rw_PROG_CXX_WORKS],
 [AC_REQUIRE([AC_PROG_CXX])dnl
 AC_CACHE_CHECK([whether the C++ compiler works],
-	[rw_cv_prog_cxx_works],
-	[AC_LANG_PUSH([C++])
-	AC_LINK_IFELSE([AC_LANG_PROGRAM([], [])],
-		[rw_cv_prog_cxx_works=yes],
-		[rw_cv_prog_cxx_works=no])
-	AC_LANG_POP([C++])])
+        [rw_cv_prog_cxx_works],
+        [AC_LANG_PUSH([C++])
+        AC_LINK_IFELSE([AC_LANG_PROGRAM([], [])],
+                [rw_cv_prog_cxx_works=yes],
+                [rw_cv_prog_cxx_works=no])
+        AC_LANG_POP([C++])])
 ])
 
 # Put all our automake definitions in config.h
@@ -58,7 +58,7 @@ AC_PROG_CXX
 rw_PROG_CXX_WORKS
 
 if test "$rw_cv_prog_cxx_works" = "no"; then
-	AC_MSG_ERROR("Failed to find working C++ compiler")
+        AC_MSG_ERROR("Failed to find working C++ compiler")
 fi
 
 # Checking for 'install'
@@ -116,8 +116,8 @@ AC_CHECK_HEADERS(stddef.h inttypes.h sys/prctl.h)
 AC_CHECK_LIB(pthread, pthread_create, have_pthread=1, have_pthread=0)
 
 if test "$have_pthread" = 1; then
-	LIBWANDIO_LIBS="$LIBWANDIO_LIBS -lpthread"
-	AC_DEFINE(HAVE_LIBPTHREAD, 1, [Set to 1 if pthreads are supported])
+        LIBWANDIO_LIBS="$LIBWANDIO_LIBS -lpthread"
+        AC_DEFINE(HAVE_LIBPTHREAD, 1, [Set to 1 if pthreads are supported])
 fi
 
 # Stupid AC_SEARCH_LIB appends stuff to LIBS even when I don't want it to, so
@@ -125,90 +125,112 @@ fi
 LIBS=
 
 AC_ARG_WITH([bzip2],
-	AC_HELP_STRING([--with-bzip2], [build with support for bzip2 compressed files]))
+        AC_HELP_STRING([--with-bzip2], [build with support for bzip2 compressed files]))
 
 AS_IF([test "x$with_bzip2" != "xno"],
-	[
-	AC_CHECK_LIB(bz2, BZ2_bzDecompressInit, have_bzip=yes, have_bzip=no)
-	], [have_bzip=no])
+        [
+        AC_CHECK_LIB(bz2, BZ2_bzDecompressInit, have_bzip=yes, have_bzip=no)
+        ], [have_bzip=no])
 
 AS_IF([test "x$have_bzip" = "xyes"], [
-	if test "$ac_cv_lib_bz2_BZ2_bzDecompressInit" != "none required"; then
-		LIBWANDIO_LIBS="$LIBWANDIO_LIBS -lbz2"
-	fi
-	with_bzip2=yes
-	AC_DEFINE(HAVE_LIBBZ2, 1, "Compiled with bzip2 support")],
+        if test "$ac_cv_lib_bz2_BZ2_bzDecompressInit" != "none required"; then
+                LIBWANDIO_LIBS="$LIBWANDIO_LIBS -lbz2"
+        fi
+        with_bzip2=yes
+        AC_DEFINE(HAVE_LIBBZ2, 1, "Compiled with bzip2 support")],
 
-	[AS_IF([test "x$with_bzip2" = "xyes"],
-		[AC_MSG_ERROR([bzip2 requested but not found])])
-	AC_DEFINE(HAVE_LIBBZ2, 0, "Compiled with bzip2 support")
-	with_bzip2=no]
+        [AS_IF([test "x$with_bzip2" = "xyes"],
+                [AC_MSG_ERROR([bzip2 requested but not found])])
+        AC_DEFINE(HAVE_LIBBZ2, 0, "Compiled with bzip2 support")
+        with_bzip2=no]
 )
 
 AC_ARG_WITH([zlib],
-	AC_HELP_STRING([--with-zlib], [build with support for zlib compressed files]))
+        AC_HELP_STRING([--with-zlib], [build with support for zlib compressed files]))
 
 AS_IF([test "x$with_zlib" != "xno"],
-	[
-	AC_CHECK_LIB(z, deflate, have_zlib=yes, have_zlib=no)
-	], [have_zlib=no])
+        [
+        AC_CHECK_LIB(z, deflate, have_zlib=yes, have_zlib=no)
+        ], [have_zlib=no])
 
 AS_IF([test "x$have_zlib" = "xyes"], [
-	if test "$ac_cv_lib_z_deflate" != "none required"; then
-		LIBWANDIO_LIBS="$LIBWANDIO_LIBS -lz"
-	fi
-	AC_DEFINE(HAVE_LIBZ, 1, "Compiled with zlib support")
-	with_zlib=yes],
+        if test "$ac_cv_lib_z_deflate" != "none required"; then
+                LIBWANDIO_LIBS="$LIBWANDIO_LIBS -lz"
+        fi
+        AC_DEFINE(HAVE_LIBZ, 1, "Compiled with zlib support")
+        with_zlib=yes],
 
 
-	[AS_IF([test "x$with_zlib" = "xyes"],
-		[AC_MSG_ERROR([zlib requested but not found])])
-	AC_DEFINE(HAVE_LIBZ, 0, "Compiled with zlib support")
-	with_zlib=no]
+        [AS_IF([test "x$with_zlib" = "xyes"],
+                [AC_MSG_ERROR([zlib requested but not found])])
+        AC_DEFINE(HAVE_LIBZ, 0, "Compiled with zlib support")
+        with_zlib=no]
 )
 
 AC_ARG_WITH([lzo],
-	AC_HELP_STRING([--with-lzo], [build with support for writing lzo compressed files]))
+        AC_HELP_STRING([--with-lzo], [build with support for writing lzo compressed files]))
 
 AS_IF([test "x$with_lzo" != "xno"],
-	[
-	AC_CHECK_LIB(lzo2, lzo1x_1_compress, have_lzo=yes, have_lzo=no)
-	], [have_lzo=no])
+        [
+        AC_CHECK_LIB(lzo2, lzo1x_1_compress, have_lzo=yes, have_lzo=no)
+        ], [have_lzo=no])
 
 AS_IF([test "x$have_lzo" = "xyes"], [
-	if test "$ac_cv_lib_lzo2_lzo1x_1_compress" != "none required"; then
-		LIBWANDIO_LIBS="$LIBWANDIO_LIBS -llzo2"
-	fi
-	AC_DEFINE(HAVE_LIBLZO2, 1, "Compiled with lzo2 support")
-	with_lzo=yes],
+        if test "$ac_cv_lib_lzo2_lzo1x_1_compress" != "none required"; then
+                LIBWANDIO_LIBS="$LIBWANDIO_LIBS -llzo2"
+        fi
+        AC_DEFINE(HAVE_LIBLZO2, 1, "Compiled with lzo2 support")
+        with_lzo=yes],
 
 
-	[AS_IF([test "x$with_lzo" = "xyes"],
-		[AC_MSG_ERROR([lzo requested but not found])])
-	AC_DEFINE(HAVE_LIBLZO2, 0, "Compiled with lzo2 support")
-	with_lzo=no]
+        [AS_IF([test "x$with_lzo" = "xyes"],
+                [AC_MSG_ERROR([lzo requested but not found])])
+        AC_DEFINE(HAVE_LIBLZO2, 0, "Compiled with lzo2 support")
+        with_lzo=no]
 )
 
 AC_ARG_WITH([lzma],
-	AC_HELP_STRING([--with-lzma], [build with support for lzma compressed files]))
+        AC_HELP_STRING([--with-lzma], [build with support for lzma compressed files]))
 
 AS_IF([test "x$with_lzma" != "xno"],
-	[
-	AC_CHECK_HEADER(lzma.h, have_lzma=yes, have_lzma=no)
-	], [have_lzma=no])
+        [
+        AC_CHECK_HEADER(lzma.h, have_lzma=yes, have_lzma=no)
+        ], [have_lzma=no])
 
 AS_IF([test "x$have_lzma" = "xyes"], [
-	if test "$ac_cv_lib_lzma_code" != "none required"; then
-		LIBWANDIO_LIBS="$LIBWANDIO_LIBS -llzma"
-	fi
-	AC_DEFINE(HAVE_LIBLZMA, 1, "Compiled with lzma support")
-	with_lzma=yes],
+        if test "$ac_cv_lib_lzma_code" != "none required"; then
+                LIBWANDIO_LIBS="$LIBWANDIO_LIBS -llzma"
+        fi
+        AC_DEFINE(HAVE_LIBLZMA, 1, "Compiled with lzma support")
+        with_lzma=yes],
 
 
-	[AS_IF([test "x$with_lzma" = "xyes"],
-		[AC_MSG_ERROR([lzma requested but not found])])
-	AC_DEFINE(HAVE_LIBLZMA, 0, "Compiled with lzma support")
-	with_lzma=no]
+        [AS_IF([test "x$with_lzma" = "xyes"],
+                [AC_MSG_ERROR([lzma requested but not found])])
+        AC_DEFINE(HAVE_LIBLZMA, 0, "Compiled with lzma support")
+        with_lzma=no]
+)
+
+AC_ARG_WITH([zstd],
+        AC_HELP_STRING([--with-zstd], [build with support for zstd compressed files]))
+
+AS_IF([test "x$with_zstd" != "xno"],
+        [
+        AC_CHECK_HEADER(zstd.h, have_zstd=yes, have_zstd=no)
+        ], [have_lzma=no])
+
+AS_IF([test "x$have_zstd" = "xyes"], [
+        if test "$ac_cv_lib_zstd_code" != "none required"; then
+                LIBWANDIO_LIBS="$LIBWANDIO_LIBS -lzstd"
+        fi
+        AC_DEFINE(HAVE_LIBZSTD, 1, "Compiled with zstd support")
+        with_zstd=yes],
+
+
+        [AS_IF([test "x$with_zstd" = "xyes"],
+                [AC_MSG_ERROR([zstd requested but not found])])
+        AC_DEFINE(HAVE_LIBZSTD, 0, "Compiled with lzma support")
+        with_zstd=no]
 )
 
 AC_ARG_WITH([http],
@@ -218,7 +240,7 @@ AS_IF([test "x$with_http" != "xno"],
         [
         # we need curl_easy_pause which was added in 7.18.0
         AC_CHECK_LIB(curl, curl_easy_pause, have_curl=yes, have_curl=no)
-	], [have_curl=no])
+        ], [have_curl=no])
 
 AS_IF([test "x$have_curl" = "xyes"], [
         if test "$ac_cv_lib_curl_curl_easy_pause" != "none required"; then
@@ -239,6 +261,7 @@ AM_CONDITIONAL([HAVE_BZLIB], [test "x$with_bzip2" != "xno"])
 AM_CONDITIONAL([HAVE_ZLIB], [test "x$with_zlib" != "xno"])
 AM_CONDITIONAL([HAVE_LZO], [ test "x$with_lzo" != "xno"])
 AM_CONDITIONAL([HAVE_LZMA], [ test "x$with_lzma" != "xno"])
+AM_CONDITIONAL([HAVE_ZSTD], [ test "x$with_zstd" != "xno"])
 AM_CONDITIONAL([HAVE_HTTP], [ test "x$with_http" != "xno"])
 
 # Set all our output variables
@@ -260,11 +283,11 @@ AC_OUTPUT
 
 # Function for reporting whether an option was set or not
 reportopt() {
-	if test x"$2" = xtrue -o x"$2" = xyes; then
-		AC_MSG_NOTICE([$1: Yes])
-	else
-		AC_MSG_NOTICE([$1: No])
-	fi
+        if test x"$2" = xtrue -o x"$2" = xyes; then
+                AC_MSG_NOTICE([$1: Yes])
+        else
+                AC_MSG_NOTICE([$1: No])
+        fi
 }
 
 
@@ -275,4 +298,5 @@ reportopt "Compiled with compressed file (zlib) support" $with_zlib
 reportopt "Compiled with compressed file (bz2) support" $with_bzip2
 reportopt "Compiled with compressed file (lzo write only) support" $with_lzo
 reportopt "Compiled with compressed file (lzma) support" $with_lzma
+reportopt "Compiled with compressed file (zstd) support" $with_zstd
 reportopt "Compiled with http read (libcurl) support" $with_http
