@@ -1,15 +1,15 @@
 /*
  * This file is part of libwandio
  *
- * Copyright (c) 2007-2015 The University of Waikato, Hamilton, 
+ * Copyright (c) 2007-2015 The University of Waikato, Hamilton,
  * New Zealand.
  *
  * Authors: Perry Lorier
- *          Shane Alcock 
- *          
+ *          Shane Alcock
+ *
  * All rights reserved.
  *
- * This code has been developed by the University of Waikato WAND 
+ * This code has been developed by the University of Waikato WAND
  * research group. For further information please see http://www.wand.net.nz/
  *
  * libwandio is free software; you can redistribute it and/or modify
@@ -44,10 +44,11 @@
  */
 
 struct wandio_compression_type compression_type[]  = {
-	{ "gzip",	"gz", 	WANDIO_COMPRESS_ZLIB 	},
-	{ "bzip2",      "bz2", 	WANDIO_COMPRESS_BZ2	},
+	{ "gzip",	"gz",	WANDIO_COMPRESS_ZLIB	},
+	{ "bzip2",      "bz2",	WANDIO_COMPRESS_BZ2	},
 	{ "lzo",	"lzo",  WANDIO_COMPRESS_LZO	},
-	{ "lzma",	"xz",  WANDIO_COMPRESS_LZMA	},
+	{ "lzma",	"xz",	WANDIO_COMPRESS_LZMA	},
+	{ "zstd",       "zst",	WANDIO_COMPRESS_ZSTD    },
 	{ "NONE",	"",	WANDIO_COMPRESS_NONE	}
 };
 
@@ -72,7 +73,7 @@ uint64_t write_waits = 0;
  */
 static void do_option(const char *option)
 {
-	if (*option == '\0') 
+	if (*option == '\0')
 		;
 	else if (strcmp(option,"stats") == 0)
 		keep_stats = 1;
@@ -126,42 +127,42 @@ static void parse_env(void)
 #if PIPELINE_TRACE
 #define DEBUG_PIPELINE(x) fprintf(stderr,"PIPELINE: %s\n",x)
 #else
-#define DEBUG_PIPELINE(x) 
+#define DEBUG_PIPELINE(x)
 #endif
 
 static io_t *create_io_reader(const char *filename, int autodetect)
 {
-        io_t *io;
+	io_t *io;
 	/* Use a peeking reader to look at the start of the trace file and
 	 * determine what type of compression may have been used to write
 	 * the file */
 
-        /* should we use http to read this file? */
-        int stdfile = 1;
-        const char *p, *q;
-        p = strstr(filename, "://");
+	/* should we use http to read this file? */
+	int stdfile = 1;
+	const char *p, *q;
+	p = strstr(filename, "://");
 	if (p && *p) {
-                /* ensure the protocol is sane */
+		/* ensure the protocol is sane */
 		for (q = filename; q != p; ++q)
 			if (!isalnum(*q)) break;
 		if (q == p) stdfile = 0;
 	}
-        if (stdfile) {
-                DEBUG_PIPELINE("stdio");
-                io = stdio_open(filename);
-        }
-        else {
+	if (stdfile) {
+		DEBUG_PIPELINE("stdio");
+		io = stdio_open(filename);
+	}
+	else {
 #if HAVE_HTTP
-                DEBUG_PIPELINE("http");
-                io = http_open(filename);
+		DEBUG_PIPELINE("http");
+		io = http_open(filename);
 #else
-                fprintf(stderr, "%s appears to be an HTTP URI but libwandio has notbeen built with http (libcurl) support!\n", filename);
-                return NULL;
+		fprintf(stderr, "%s appears to be an HTTP URI but libwandio has notbeen built with http (libcurl) support!\n", filename);
+		return NULL;
 #endif
-        }
+	}
 
 	DEBUG_PIPELINE("peek");
-        io = peek_open(io);
+	io = peek_open(io);
 	unsigned char buffer[1024];
 	int len;
 	if (!io)
@@ -173,7 +174,7 @@ static io_t *create_io_reader(const char *filename, int autodetect)
 
 	if (autodetect) {
 		if (len>=3 && buffer[0] == 0x1f && buffer[1] == 0x8b &&
-				buffer[2] == 0x08) { 
+				buffer[2] == 0x08) {
 #if HAVE_LIBZ
 			DEBUG_PIPELINE("zlib");
 			io = zlib_open(io);
@@ -194,7 +195,7 @@ static io_t *create_io_reader(const char *filename, int autodetect)
 		}
 
 		/* Auto detect bzip compressed data */
-		if (len>=3 && buffer[0] == 'B' && buffer[1] == 'Z' && buffer[2] == 'h') { 
+		if (len>=3 && buffer[0] == 'B' && buffer[1] == 'Z' && buffer[2] == 'h') {
 #if HAVE_LIBBZ2
 			DEBUG_PIPELINE("bzip");
 			io = bz_open(io);
@@ -204,18 +205,29 @@ static io_t *create_io_reader(const char *filename, int autodetect)
 #endif
 		}
 
-                if (len >=5 && buffer[0] == 0xfd && buffer[1] == '7' && 
-                                buffer[2] == 'z' && buffer[3] == 'X' &&
-                                buffer[4] == 'Z') {
+		if (len >=5 && buffer[0] == 0xfd && buffer[1] == '7' &&
+				buffer[2] == 'z' && buffer[3] == 'X' &&
+				buffer[4] == 'Z') {
 #if HAVE_LIBLZMA
-                        DEBUG_PIPELINE("lzma");
-                        io = lzma_open(io);
+			DEBUG_PIPELINE("lzma");
+			io = lzma_open(io);
 #else
-                        fprintf(stderr, "File %s is lzma compressed but libwandio has not been built with lzma support!\n", filename);
-                        return NULL;
+			fprintf(stderr, "File %s is lzma compressed but libwandio has not been built with lzma support!\n", filename);
+			return NULL;
 #endif
-                }
-	}	
+		}
+
++		if ((len >= 6)
+			(buffer[0] == 0x28) && (buffer[1] == 0xb5) &&
+			(buffer[2] == 0x2f) && (buffer[3] == 0xfd)) && {
++#if HAVE_LIBZSTD
+			DEBUG_PIPELINE("zstd");
+			io = zstd_open(io);
++#else
+			fprintf(stderr, "File %s is zstd compress but libwandio has not been built with zstd support!\n", filename);
+			return NULL;
+#endif
+	}
 	/* Now open a threaded, peekable reader using the appropriate module
 	 * to read the data */
 
@@ -223,23 +235,23 @@ static io_t *create_io_reader(const char *filename, int autodetect)
 		DEBUG_PIPELINE("thread");
 		io = thread_open(io);
 	}
-	
+
 	DEBUG_PIPELINE("peek");
 	return peek_open(io);
 }
 
 DLLEXPORT struct wandio_compression_type *wandio_lookup_compression_type(
-        const char *name) {
+	const char *name) {
 
-        struct wandio_compression_type *wct = compression_type;
+	struct wandio_compression_type *wct = compression_type;
 
-        while (strcmp(wct->name, "NONE") != 0) {
-                if (strcmp(wct->name, name) == 0)
-                        return wct;
-                wct++;
-        }
+	while (strcmp(wct->name, "NONE") != 0) {
+		if (strcmp(wct->name, name) == 0)
+			return wct;
+		wct++;
+	}
 
-        return NULL;
+	return NULL;
 }
 
 DLLEXPORT io_t *wandio_create(const char *filename) {
@@ -272,9 +284,9 @@ DLLEXPORT int64_t wandio_seek(io_t *io, int64_t offset, int whence)
 }
 
 DLLEXPORT int64_t wandio_read(io_t *io, void *buffer, int64_t len)
-{ 
+{
 	int64_t ret;
-	ret=io->source->read(io,buffer,len); 
+	ret=io->source->read(io,buffer,len);
 #if READ_TRACE
 	fprintf(stderr,"%p: read(%s): %d bytes = %d\n",io,io->source->name, (int)len,(int)ret);
 #endif
@@ -297,13 +309,13 @@ DLLEXPORT int64_t wandio_peek(io_t *io, void *buffer, int64_t len)
 }
 
 DLLEXPORT void wandio_destroy(io_t *io)
-{ 
+{
 	if (!io)
 		return;
-	
-	if (keep_stats) 
+
+	if (keep_stats)
 		fprintf(stderr,"LIBTRACEIO STATS: %"PRIu64" blocks on read\n", read_waits);
-	io->source->close(io); 
+	io->source->close(io);
 }
 
 DLLEXPORT iow_t *wandio_wcreate(const char *filename, int compress_type, int compression_level, int flags)
@@ -321,29 +333,35 @@ DLLEXPORT iow_t *wandio_wcreate(const char *filename, int compress_type, int com
 	/* We prefer zlib if available, otherwise we'll use bzip. If neither
 	 * are present, guess we'll just have to write uncompressed */
 #if HAVE_LIBZ
-	if (compression_level != 0 && 
+	if (compression_level != 0 &&
 	    compress_type == WANDIO_COMPRESS_ZLIB) {
 		iow = zlib_wopen(iow,compression_level);
 	}
 #endif
 #if HAVE_LIBLZO2
-	else if (compression_level != 0 && 
+	else if (compression_level != 0 &&
 	    compress_type == WANDIO_COMPRESS_LZO) {
 		iow = lzo_wopen(iow,compression_level);
 	}
 #endif
 #if HAVE_LIBBZ2
-	else if (compression_level != 0 && 
+	else if (compression_level != 0 &&
 	    compress_type == WANDIO_COMPRESS_BZ2) {
 		iow = bz_wopen(iow,compression_level);
 	}
 #endif
 #if HAVE_LIBLZMA
-        else if (compression_level != 0 && 
-            compress_type == WANDIO_COMPRESS_LZMA) {
-                iow = lzma_wopen(iow,compression_level);
-        }
+	else if (compression_level != 0 &&
+	    compress_type == WANDIO_COMPRESS_LZMA) {
+		iow = lzma_wopen(iow,compression_level);
+	}
 #endif
+#if HAVE_LIBZSTD
+	else if (compression_level != 0 &&
+	    compress_type == WANDIO_COMPRESS_ZSTD) {
+		iow = zstd_wopen(iow,compression_level);
+	}
++#endif
 	/* Open a threaded writer */
 	if (use_threads)
 		return thread_wopen(iow);
@@ -356,13 +374,12 @@ DLLEXPORT int64_t wandio_wwrite(iow_t *iow, const void *buffer, int64_t len)
 #if WRITE_TRACE
 	fprintf(stderr,"wwrite(%s): %d bytes\n",iow->source->name, (int)len);
 #endif
-	return iow->source->write(iow,buffer,len);	
+	return iow->source->write(iow,buffer,len);
 }
 
 DLLEXPORT void wandio_wdestroy(iow_t *iow)
 {
 	iow->source->close(iow);
-	if (keep_stats) 
+	if (keep_stats)
 		fprintf(stderr,"LIBTRACEIO STATS: %"PRIu64" blocks on write\n", write_waits);
 }
-
