@@ -24,6 +24,7 @@
  *
  */
 
+#include <assert.h>
 #include <ctype.h>
 #include <err.h>
 #include <errno.h>
@@ -31,6 +32,68 @@
 #include <stdlib.h>
 #include <string.h>
 #include "wandio.h"
+
+struct user_t {
+        io_t *parent;
+};
+
+#define DATA(io) ((struct user_t *)((io)->data))
+
+static int64_t user_read(io_t *io, void *buffer, int64_t len)
+{
+        int return_value = wandio_read(DATA(io)->parent, buffer, len);
+        char *p = (char*)buffer;
+        /* tweak the data a bit so we can be sure that user_read was invoked. */
+        for(int i = 0; i < len; i++) {
+                p[i]--;
+        }
+        return return_value;
+}
+
+static int user_pre_init(io_t *parent, const char *filename)
+{
+        const char *USER_SUFFIX = ".user";
+        /* Check for a .user extension. */
+        size_t len = strlen(filename);
+        if (len >= strlen(USER_SUFFIX)) {
+                const char *ptr = filename + len - strlen(USER_SUFFIX);
+                if (strcmp(ptr, USER_SUFFIX) == 0) {
+                        return 1;
+                }
+        }
+        return 0;
+}
+
+static void user_close(io_t *io)
+{
+        wandio_destroy(DATA(io)->parent);
+        free(io->data);
+        free(io);
+}
+
+static io_t* user_open(io_t *parent, const char *filename);
+
+static io_source_t user_test_source = {
+    "user",                     // name
+    user_read,                  // read
+    NULL,                       // peek
+    NULL,                       // tell
+    NULL,                       // seek
+    user_close,                 // close
+    user_pre_init,              // pre_init
+    user_open,                  // open
+};
+
+static io_t* user_open(io_t *parent, const char *filename)
+{
+        assert(parent != NULL);
+        io_t *io = malloc(sizeof(io_t));
+        io->data = malloc(sizeof(struct user_t));
+        io->source= &user_test_source;
+        DATA(io)->parent = parent;
+        return io;
+}
+
 
 static void printhelp() {
         printf("wandiocat: concatenate files into a single compressed file\n");
@@ -48,6 +111,8 @@ static void printhelp() {
         printf(" -o <file>\n");
         printf("    The name of the output file. If not specified, output\n");
         printf("    is written to standard output.\n");
+        printf(" -u\n");
+        printf("    Enable user extension test.\n");
 }
 
 int main(int argc, char *argv[]) {
@@ -56,7 +121,9 @@ int main(int argc, char *argv[]) {
         char *output = "-";
         int c;
         char *buffer = NULL;
-        while ((c = getopt(argc, argv, "Z:z:o:h")) != -1) {
+        int register_user_io_source = 0;
+
+        while ((c = getopt(argc, argv, "Z:z:o:hu")) != -1) {
                 switch (c) {
                 case 'Z': {
                         struct wandio_compression_type *compression_type =
@@ -80,6 +147,9 @@ int main(int argc, char *argv[]) {
                 case 'h':
                         printhelp();
                         return 0;
+                case 'u':
+                        register_user_io_source = 1;
+                        break;
                 case '?':
                         if (optopt == 'Z' || optopt == 'z' || optopt == 'o')
                                 fprintf(stderr,
@@ -94,6 +164,14 @@ int main(int argc, char *argv[]) {
                                         optopt);
                         return 1;
                 default:
+                        abort();
+                }
+        }
+
+        if (register_user_io_source) {
+                if(wandio_register_io_source(&user_test_source)) {
+                        fprintf(stderr,
+                                "Unable to create user io source\n");
                         abort();
                 }
         }

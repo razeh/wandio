@@ -141,4 +141,7 @@ static void lzma_close(io_t *io) {
 io_source_t lzma_source = {"lzma",    lzma_read, NULL, /* peek */
                            NULL,                       /* tell */
                            NULL,                       /* seek */
-                           lzma_close};
+                           lzma_close,
+                           NULL,
+                           NULL
+};

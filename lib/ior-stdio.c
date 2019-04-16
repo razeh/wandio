@@ -88,4 +88,4 @@ static void stdio_close(io_t *io) {
 }
 
 io_source_t stdio_source = {"stdio",    stdio_read, NULL,
-                            stdio_tell, stdio_seek, stdio_close};
+                            stdio_tell, stdio_seek, stdio_close, NULL, NULL };

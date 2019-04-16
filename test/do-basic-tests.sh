@@ -87,12 +87,29 @@ writing $1 test file"
         diff -q /tmp/wandiotest2.md5 /tmp/wandiobase.md5 > /dev/null
         if [ $? -ne 0 ]; then
                 FAIL="$FAIL
-writing $1 test file"
-                echo "   fail (read with standard tool)"
+user ior test"
+                echo "   fail (user ior test)"
         else
                 OK=$[ OK + 1 ]
                 echo "   pass"
         fi
+}
+
+do_user_ior_test() {
+        ls > /tmp/source
+        ./byte_increment.py /tmp/source > /tmp/byte_incremented.user
+        wandiocat -o /tmp/test.bz2 /tmp/byte_incremented.user -Z bzip2 -z 1 -u
+        bunzip2 -f /tmp/test.bz2
+        diff -q /tmp/test /tmp/source
+        if [ $? -ne 0 ]; then
+                FAIL="$FAIL
+writing $1 test file"
+                echo "   fail (user ior test)"
+        else
+                OK=$[ OK + 1 ]
+                echo "   pass"
+        fi
+
 }
 
 REQBINARIES=( gzip bzip2 xz lz4 zstd lzop )
@@ -141,6 +158,9 @@ do_write_test zstd
 
 echo -n \* Writing lzo...
 do_write_test lzo
+
+echo -n \* User IOR test
+do_user_ior_test
 
 echo
 echo "Tests passed: $OK"

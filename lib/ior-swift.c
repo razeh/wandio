@@ -32,6 +32,7 @@
  */
 
 #include "config.h"
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include "swift-support/keystone.h"
@@ -66,6 +67,7 @@ extern io_source_t swift_source;
 #define SWIFT_AUTH_TOKEN_HDR "X-Auth-Token: "
 
 io_t *swift_open(const char *filename);
+io_t *swift_open_dummy(io_t *io, const char *filename);
 static int64_t swift_read(io_t *io, void *buffer, int64_t len);
 static int64_t swift_tell(io_t *io);
 static int64_t swift_seek(io_t *io, int64_t offset, int whence);
@@ -264,5 +266,13 @@ static void swift_close(io_t *io) {
         free(io);
 }
 
+io_t *swift_open_dummy(io_t *parent, const char *filename)
+{
+    assert(parent == NULL);
+    return swift_open(filename);
+}
+
 io_source_t swift_source = {"swift",    swift_read, NULL,
-                            swift_tell, swift_seek, swift_close};
+                            swift_tell, swift_seek, swift_close,
+                            NULL, swift_open_dummy
+};

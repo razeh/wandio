@@ -80,7 +80,7 @@ struct qat_t {
         enum err_t err;
 };
 
-io_t *qat_open(io_t *parent) {
+io_t *qat_open(io_t *parent, const char *filename) {
 
         int x;
         io_t *io;
@@ -225,4 +225,7 @@ static void qat_close(io_t *io) {
 io_source_t qat_source = {"qatr",   qat_read, NULL, /* peek */
                           NULL,                     /* tell */
                           NULL,                     /* seek */
-                          qat_close};
+                          qat_close,
+                          NULL,
+                          quat_open
+};

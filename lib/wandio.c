@@ -59,6 +59,9 @@ unsigned int max_buffers = 50;
 uint64_t read_waits = 0;
 uint64_t write_waits = 0;
 
+static io_source_t** user_io_sources = NULL;
+static unsigned int user_io_sources_count = 0;
+
 static const char *ctype_name(int compress_type) {
 
         int i;
@@ -199,7 +202,7 @@ static io_t *create_io_reader(const char *filename, int autodetect) {
 #if HAVE_LIBQATZIP
                         /* Try using libqat. If this fails, fall back to
                          * standard zlib */
-                        io = qat_open(base);
+                        io = qat_open(base, filename);
 #endif
 #if HAVE_LIBZ
                         if (io == NULL) {
@@ -306,6 +309,13 @@ static io_t *create_io_reader(const char *filename, int autodetect) {
 #endif
                 }
         }
+
+        for(unsigned int i = 0; i < user_io_sources_count; i++) {
+            if (user_io_sources[i]->pre_init(base, filename)) {
+                io = user_io_sources[i]->open(base, filename);
+            }
+        }
+
         /* Now open a threaded, peekable reader using the appropriate module
          * to read the data */
         if (io == NULL) {
@@ -611,4 +621,16 @@ DLLEXPORT inline off_t wandio_printf(iow_t *file, const char *format, ...) {
         va_start(ap, format);
         return wandio_vprintf(file, format, ap);
         va_end(ap);
+}
+
+DLLEXPORT int wandio_register_io_source(io_source_t *user_source)
+{
+    user_io_sources_count++;
+    void* bigger_user_io_sources = realloc(user_io_sources, sizeof(io_source_t*) * user_io_sources_count);
+    if (bigger_user_io_sources == NULL) {
+        return -1;
+    }
+    user_io_sources = bigger_user_io_sources;
+    user_io_sources[user_io_sources_count-1] = user_source;
+    return 0;
 }

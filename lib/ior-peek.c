@@ -306,4 +306,4 @@ static void peek_close(io_t *io) {
 }
 
 io_source_t peek_source = {"peek",    peek_read, peek_peek,
-                           peek_tell, peek_seek, peek_close};
+                           peek_tell, peek_seek, peek_close, NULL, NULL };

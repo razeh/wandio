@@ -122,9 +122,9 @@ typedef struct {
          * @param io		The IO reader to move the read pointer for
          * @param offset	The new read pointer offset
          * @param whence	Where to start counting the new offset from.
-         * 			whence can be one of three values: SEEK_SET,
-         * 			SEEK_CUR and SEEK_END. See the lseek(2) manpage
-         * 			for more details as to what these mean.
+         *                      whence can be one of three values: SEEK_SET,
+         *                      SEEK_CUR and SEEK_END. See the lseek(2) manpage
+         *                      for more details as to what these mean.
          * @return The value of the new read pointer, or -1 if an error occurs
          */
         int64_t (*seek)(io_t *io, int64_t offset, int whence);
@@ -134,6 +134,22 @@ typedef struct {
          * @param io		The IO reader to close
          */
         void (*close)(io_t *io);
+
+        /** Report back if this io_source can handle filename, and
+         * if calling open will work.
+         *
+         * @param io            The IO reader to do the pre-init
+         * @param filename      The candidate filename for this IO reader
+         * @return 1 if this IO reader can handle filename
+         */
+        int (*pre_init)(io_t *parent, const char *filename);
+
+        /** Open a source.
+         * parent               The IO reader for our parent; may be NULL
+         * filename             The file to open; may be NULL
+         */
+        io_t* (*open)(io_t *parent, const char *filename);
+
 } io_source_t;
 
 /** Structure defining a libwandio IO writer module */
@@ -292,7 +308,7 @@ int64_t wandio_tell(io_t *io);
  * @param io		The IO reader to adjust the read pointer for
  * @param offset	The new offset for the read pointer
  * @param whence	Indicates where to set the read pointer from. Can be
- * 			one of SEEK_SET, SEEK_CUR or SEEK_END.
+ *                      one of SEEK_SET, SEEK_CUR or SEEK_END.
  * @return The new value for the read pointer, or -1 if an error occurs
  *
  * The arguments for this function are the same as those for lseek(2). See the
@@ -309,11 +325,18 @@ int64_t wandio_seek(io_t *io, int64_t offset, int whence);
  */
 int64_t wandio_read(io_t *io, void *buffer, int64_t len);
 
+/** Register a user provided IO reader.
+ *
+ * @param user_source   The user provided source
+ * @return 0 on success, -1 on failure.
+ */
+int wandio_register_io_source(io_source_t *user_source);
+
 /** Reads from a libwandio IO reader into the provided buffer, but does not
  * update the read pointer.
  *
  * @param io		The IO reader to read from
- * @param buffer 	The buffer to read into
+ * @param buffer        The buffer to read into
  * @param len		The size of the buffer
  * @return The amount of bytes read, 0 if EOF is reached, -1 if an error occurs
  */
@@ -332,7 +355,7 @@ void wandio_destroy(io_t *io);
  * @param compression_type	Compression type
  * @param compression_level	The compression level to use when writing
  * @param flags			Flags to apply when opening the file, e.g.
- * 				O_CREAT. See fcntl.h for more flags.
+ *                              O_CREAT. See fcntl.h for more flags.
  * @return A pointer to the new libwandio IO writer, or NULL if an error occurs
  */
 iow_t *wandio_wcreate(const char *filename, int compression_type,

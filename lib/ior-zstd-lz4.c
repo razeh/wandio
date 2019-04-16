@@ -307,4 +307,7 @@ static void zstd_lz4_close(io_t *io) {
 io_source_t zstd_lz4_source = {"zstd_lz4",    zstd_lz4_read, NULL, /* peek */
                                NULL,                               /* tell */
                                NULL,                               /* seek */
-                               zstd_lz4_close};
+                               zstd_lz4_close,
+                               NULL,
+                               NULL
+};

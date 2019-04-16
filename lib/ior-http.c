@@ -385,4 +385,6 @@ static void http_close(io_t *io) {
 }
 
 io_source_t http_source = {"http",    http_read, NULL,
-                           http_tell, http_seek, http_close};
+                           http_tell, http_seek, http_close,
+                           NULL, NULL
+};
