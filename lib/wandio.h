@@ -89,6 +89,8 @@ typedef struct {
         /** Module name */
         const char *name;
 
+        const char *protocol;
+
         /** Reads from the IO source into the provided buffer.
          *
          * @param io		The IO reader

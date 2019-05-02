@@ -109,7 +109,22 @@ writing $1 test file"
                 OK=$[ OK + 1 ]
                 echo "   pass"
         fi
+}
 
+do_user_protocol_test() {
+        ls > /tmp/source
+        ./byte_increment.py /tmp/source > /tmp/byte_incremented.user
+        wandiocat -o /tmp/test.bz2 user:///tmp/byte_incremented.user -Z bzip2 -z 1 -u
+        bunzip2 -f /tmp/test.bz2
+        diff -q /tmp/test /tmp/source
+        if [ $? -ne 0 ]; then
+                FAIL="$FAIL
+writing $1 test file"
+                echo "   fail (user protocol test)"
+        else
+                OK=$[ OK + 1 ]
+                echo "   pass"
+        fi
 }
 
 REQBINARIES=( gzip bzip2 xz lz4 zstd lzop )
@@ -161,6 +176,9 @@ do_write_test lzo
 
 echo -n \* User IOR test
 do_user_ior_test
+
+echo -n \* User protocol test
+do_user_protocol_test
 
 echo
 echo "Tests passed: $OK"

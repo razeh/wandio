@@ -138,10 +138,14 @@ static void lzma_close(io_t *io) {
         free(io);
 }
 
-io_source_t lzma_source = {"lzma",    lzma_read, NULL, /* peek */
-                           NULL,                       /* tell */
-                           NULL,                       /* seek */
-                           lzma_close,
-                           NULL,
-                           NULL
+io_source_t lzma_source = {
+	"lzma",
+	NULL,
+	lzma_read, 
+	NULL, /* peek */
+	NULL,                       /* tell */
+	NULL,                       /* seek */
+	lzma_close,
+	NULL,
+	NULL
 };

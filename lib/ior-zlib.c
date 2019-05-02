@@ -168,10 +168,14 @@ static void zlib_close(io_t *io) {
         free(io);
 }
 
-io_source_t zlib_source = {"zlib",    zlib_read, NULL, /* peek */
-                           NULL,                       /* tell */
-                           NULL,                       /* seek */
-                           zlib_close,
-                           NULL,
-                           NULL,
+io_source_t zlib_source = {
+	"zlib",
+	NULL,
+	zlib_read, 
+	NULL, /* peek */
+	NULL,                       /* tell */
+	NULL,                       /* seek */
+	zlib_close,
+	NULL,
+	NULL,
 };

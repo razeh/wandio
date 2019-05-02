@@ -286,10 +286,14 @@ static void thread_close(io_t *io) {
         free(io);
 }
 
-io_source_t thread_source = {"thread",    thread_read, NULL, /* peek */
-                             NULL,                           /* tell */
-                             NULL,                           /* seek */
-                             thread_close,
-                             NULL,
-                             NULL
+io_source_t thread_source = {
+	"thread",    
+	NULL,
+	thread_read, 
+	NULL, /* peek */
+	NULL,                           /* tell */
+	NULL,                           /* seek */
+	thread_close,
+	NULL,
+	NULL
 };

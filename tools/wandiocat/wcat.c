@@ -50,7 +50,7 @@ static int64_t user_read(io_t *io, void *buffer, int64_t len)
         return return_value;
 }
 
-static int user_pre_init(io_t *parent, const char *filename)
+static int user_pre_init(__attribute__((unused))io_t *parent, const char *filename)
 {
         const char *USER_SUFFIX = ".user";
         /* Check for a .user extension. */
@@ -75,6 +75,7 @@ static io_t* user_open(io_t *parent, const char *filename);
 
 static io_source_t user_test_source = {
     "user",                     // name
+    NULL,
     user_read,                  // read
     NULL,                       // peek
     NULL,                       // tell
@@ -84,8 +85,11 @@ static io_source_t user_test_source = {
     user_open,                  // open
 };
 
-static io_t* user_open(io_t *parent, const char *filename)
+#define protocol_prefix "user://"
+
+static io_t* user_open(io_t *parent, __attribute__((unused))const char *filename)
 {
+	// If parent is null, this is the protocol test case.
         assert(parent != NULL);
         io_t *io = malloc(sizeof(io_t));
         io->data = malloc(sizeof(struct user_t));
@@ -94,6 +98,36 @@ static io_t* user_open(io_t *parent, const char *filename)
         return io;
 }
 
+static io_t* protocol_open(__attribute__((unused))io_t *parent, const char *filename)
+{
+	const char *p = strstr(filename, protocol_prefix);
+	if (p && *p) {
+		return stdio_open(filename + strlen(protocol_prefix));
+	}
+	return NULL;
+}
+
+static int protocol_preinit(__attribute__((unused))io_t *parent, const char *filename)
+{
+	const char *p = strstr(filename, protocol_prefix);
+	if (p && *p) {
+		return 1;
+	}
+	return 0;
+	
+}
+
+static io_source_t protocol_test_source = {
+    "protocol_test",            // name
+    protocol_prefix,            // protocol
+    NULL,                       // read
+    NULL,                       // peek
+    NULL,                       // tell
+    NULL,                       // seek
+    NULL,                       // close
+    protocol_preinit,           // pre_init
+    protocol_open,              // open
+};
 
 static void printhelp() {
         printf("wandiocat: concatenate files into a single compressed file\n");
@@ -174,6 +208,11 @@ int main(int argc, char *argv[]) {
                                 "Unable to create user io source\n");
                         abort();
                 }
+		if(wandio_register_io_source(&protocol_test_source)) {
+                        fprintf(stderr,
+                                "Unable to create user protocol source\n");
+                        abort();
+		}
         }
 
         iow_t *iow = wandio_wcreate(output, compress_type, compress_level, 0);

@@ -144,7 +144,7 @@ static void parse_env(void) {
 #endif
 
 static io_t *create_io_reader(const char *filename, int autodetect) {
-        io_t *io, *base;
+        io_t *io, *base = NULL;
         /* Use a peeking reader to look at the start of the trace file and
          * determine what type of compression may have been used to write
          * the file */
@@ -168,19 +168,33 @@ static io_t *create_io_reader(const char *filename, int autodetect) {
 #if HAVE_HTTP
                 /* is this a swift file? */
                 p = strstr(filename, "swift://");
+		const char *h = strstr(filename, "http://");
                 if (p && *p) {
                         DEBUG_PIPELINE("swift");
                         base = swift_open(filename);
-                } else {
+                } else  if (h && *h) {
                         DEBUG_PIPELINE("http");
                         base = http_open(filename);
-                }
+                } else {
+			for(unsigned int i = 0; i < user_io_sources_count; i++) {
+				if (user_io_sources[i]->protocol) {
+					const char *custom = strstr(filename, user_io_sources[i]->protocol);
+					if (custom && *custom) {
+						if (user_io_sources[i]->pre_init && user_io_sources[i]->pre_init(NULL, filename)) {
+							base = user_io_sources[i]->open(NULL, filename);
+						}
+					}
+				}
+			}
+		}
 #else
-                fprintf(stderr,
-                        "%s appears to be an HTTP or Swift URI but libwandio "
-                        "has not been built with http (libcurl) support!\n",
-                        filename);
-                return NULL;
+		if (base == NULL) {
+			fprintf(stderr,
+				"%s appears to be an HTTP or Swift URI but libwandio "
+				"has not been built with http (libcurl) support!\n",
+				filename);
+			return NULL;
+		}
 #endif
         }
 
@@ -311,8 +325,9 @@ static io_t *create_io_reader(const char *filename, int autodetect) {
         }
 
         for(unsigned int i = 0; i < user_io_sources_count; i++) {
-            if (user_io_sources[i]->pre_init(base, filename)) {
+            if (user_io_sources[i]->pre_init && user_io_sources[i]->pre_init(base, filename)) {
                 io = user_io_sources[i]->open(base, filename);
+		break;
             }
         }
 

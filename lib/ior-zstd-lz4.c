@@ -304,10 +304,14 @@ static void zstd_lz4_close(io_t *io) {
         free(io);
 }
 
-io_source_t zstd_lz4_source = {"zstd_lz4",    zstd_lz4_read, NULL, /* peek */
-                               NULL,                               /* tell */
-                               NULL,                               /* seek */
-                               zstd_lz4_close,
-                               NULL,
-                               NULL
+io_source_t zstd_lz4_source = {
+    "zstd_lz4",
+    NULL,
+    zstd_lz4_read,
+    NULL, /* peek */
+    NULL,                               /* tell */
+    NULL,                               /* seek */
+    zstd_lz4_close,
+    NULL,
+    NULL
 };

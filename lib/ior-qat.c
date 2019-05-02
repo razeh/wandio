@@ -222,10 +222,14 @@ static void qat_close(io_t *io) {
         free(io);
 }
 
-io_source_t qat_source = {"qatr",   qat_read, NULL, /* peek */
-                          NULL,                     /* tell */
-                          NULL,                     /* seek */
-                          qat_close,
-                          NULL,
-                          quat_open
+io_source_t qat_source = {
+	"qatr",   
+	NULL,
+	qat_read, 
+	NULL, /* peek */
+	NULL,                     /* tell */
+	NULL,                     /* seek */
+	qat_close,
+	NULL,
+	quat_open
 };

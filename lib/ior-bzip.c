@@ -132,10 +132,14 @@ static void bz_close(io_t *io) {
         free(io);
 }
 
-io_source_t bz_source = {"bzip",  bz_read, NULL, /* peek */
-                         NULL,                   /* tell */
-                         NULL,                   /* seek */
-                         bz_close,
-                         NULL,
-                         NULL
+io_source_t bz_source = {
+	"bzip",  
+	NULL, /* protocol */
+	bz_read, 
+	NULL, /* peek */
+	NULL,                   /* tell */
+	NULL,                   /* seek */
+	bz_close,
+	NULL,
+	NULL
 };

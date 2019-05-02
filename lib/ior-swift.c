@@ -272,7 +272,14 @@ io_t *swift_open_dummy(io_t *parent, const char *filename)
     return swift_open(filename);
 }
 
-io_source_t swift_source = {"swift",    swift_read, NULL,
-                            swift_tell, swift_seek, swift_close,
-                            NULL, swift_open_dummy
+io_source_t swift_source = {
+	"swift",
+	"switf://", 
+	swift_read, 
+	NULL,
+	swift_tell, 
+	swift_seek, 
+	swift_close,
+	NULL, 
+	swift_open_dummy
 };
